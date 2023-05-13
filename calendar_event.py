@@ -11,7 +11,34 @@ from googleapiclient.errors import HttpError
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/calendar']
-def create_events(events):
+
+def convert_json(event):
+    event_name = event["name"]
+    location = event["location"]
+    start = event["start"]
+
+    if "end" in event:
+        end = event["end"]
+    else:
+        end = (datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%S.000') + datetime.timedelta(hours = 1)).isoformat()
+        
+
+    cal_event = {
+        'summary' : f'Free Food at {event_name}',
+        'location' : '',
+        'start' : {
+            'dateTime': start,
+            'timeZone': 'America/Los_Angeles',
+        },
+        'end' : {
+            'dateTime': end,
+            'timeZone': 'America/Los_Angeles',
+        }
+    }
+    
+    return cal_event
+
+def create_event(new_event, max_events = 10, days_ago=10):
     """Shows basic usage of the Google Calendar API.
     Prints the start and name of the next 10 events on the user's calendar.
     """
@@ -37,23 +64,19 @@ def create_events(events):
         service = build('calendar', 'v3', credentials=creds)
 
         # Call the Calendar API
-        now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
+        min_day = (datetime.datetime.now() - datetime.timedelta(days = days_ago)).isoformat() + 'Z'
+        print(min_day)
         print('Getting the upcoming 10 events')
-        events_result = service.events().list(calendarId='primary', timeMin=now,
-                                              maxResults=10, singleEvents=True,
+        events_result = service.events().list(calendarId='primary', timeMin=min_day,
+                                              maxResults=max_events, singleEvents=True,
                                               orderBy='startTime').execute()
         event_list = events_result.get('items', [])
-        event_names = [event_list[i]['summary'] for i in range(len(event_list))]
+        event_name = [event_list[i]['summary'] for i in range(len(event_list))]
         # create events from events
 
-        for e in events:
-            if e['summary'] not in event_names:
-                event = service.events().insert(calendarId='primary', body=e).execute()
-                print('Event created: %s' % (event.get('htmlLink')))
-
-        if not events:
-            print('No upcoming events found.')
-            return
+        if new_event['summary'] not in event_name:
+            event = service.events().insert(calendarId='primary', body=new_event).execute()
+            print('Event created: %s' % (event.get('htmlLink')))
 
         # Prints the start and name of the next 10 events
         for event in event_list:
@@ -65,15 +88,15 @@ def create_events(events):
 
 
 events = [{
-    'summary': f'[Free Food] pizza at lmao!',
+    'summary': f'[Free Food] pizza at lmao!!',
     'location': '',
     'description': f'There will be free food at ',
     'start': { 
-        'dateTime': "2023-05-28T07:00:00", # YYYY-MM-DDThh:mm:ss+00:00
+        'dateTime': "2023-05-12T13:00:00.000Z", # YYYY-MM-DDThh:mm:ss+00:00
         'timeZone': 'America/Los_Angeles',
     },
     'end': {
-        'dateTime': "2023-05-28T09:00:00",
+        'dateTime': "2023-05-12T15:00:00.000Z",
         'timeZone': 'America/Los_Angeles',
     },
     },{
@@ -104,4 +127,11 @@ events = [{
 
 
 if __name__ == '__main__':
-    create_events(events)
+    event_json = {
+        "name": "HRL Laboratories Professionalism Workshop",
+        "start": "2023-05-11T18:00:00.000",
+        "end": "2023-05-11T19:00:00",
+        "location": "ESB 1001"
+    }
+    e = convert_json(event_json)
+    create_event(e)
