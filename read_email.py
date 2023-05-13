@@ -12,7 +12,7 @@ SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
   
 # email_bodies = []
 
-def getEmails():
+def get_emails(num_emails=10):
     # Variable creds will store the user access token.
     # If no valid token found, we will create one.
     creds = None
@@ -43,10 +43,10 @@ def getEmails():
     service = build('gmail', 'v1', credentials=creds)
   
     # request a list of all the messages
-    result = service.users().messages().list(userId='me').execute()
+    # result = service.users().messages().list(userId='me').execute()
   
     # We can also pass maxResults to get any number of emails. Like this:
-    # result = service.users().messages().list(maxResults=200, userId='me').execute()
+    result = service.users().messages().list(maxResults=num_emails, userId='me').execute()
     messages = result.get('messages')
   
     # messages is a list of dictionaries where each dictionary contains a message id.
@@ -92,5 +92,3 @@ def getEmails():
         except:
             pass
     return email_bodies
-  
-# getEmails()

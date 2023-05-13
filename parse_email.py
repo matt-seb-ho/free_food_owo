@@ -1,5 +1,6 @@
 import openai
 import json
+import re
 from constants import *
 from parse_fields import ParseField, format_field_list
 from copy import deepcopy
@@ -38,23 +39,25 @@ def chat_gpt_completion(chat_history, max_tokens):
     return get_text_from_completion(completion)
 
 SAVE_TO_FILE = False
+def remove_punctuation(s):
+    return re.sub(r'[^\w\s]', '', s)
 
 def is_food_event(email_txt):
     prompt = IS_FF_EVENT_TEMPLATE.format(email=email_txt)
     chat_history = [{"role": "user", "content": prompt}]
     completion = chat_gpt_completion(chat_history, max_tokens=3)
-    print(completion)
     if SAVE_TO_FILE:
         with open("save_res.json", 'w') as f:
             json.dump(completion, f, indent=2)
-    return completion == "True"
+    return remove_punctuation(completion).lower() == "true"
 
 NAME_FIELD = ParseField("name", "The name of the event", "string")
-DATE_TIME_START_FIELD = ParseField("date_time_start", "The start date and time of the event", "Date")
+START_FIELD = ParseField("start", "The start date and time of the event", "Date")
+END_FIELD = ParseField("end", "The end date and time of the event", "Date")
 LOCATION_FIELD = ParseField("location", "The location of the event", "string")
-DEFAULT_FIELD_LIST = [NAME_FIELD, DATE_TIME_START_FIELD, LOCATION_FIELD]
+DEFAULT_FIELD_LIST = [NAME_FIELD, START_FIELD, END_FIELD, LOCATION_FIELD]
 
-def extract_fields(txt, fields=DEFAULT_FIELD_LIST):
+def extract_fields(txt, fields=DEFAULT_FIELD_LIST, max_tokens=300):
     string_fields = format_field_list(fields)
     chat_history = [
         { 
@@ -66,7 +69,7 @@ def extract_fields(txt, fields=DEFAULT_FIELD_LIST):
             "content": PARSE_USER_TEMPLATE.format(document=txt)
         }
     ]
-    completion = chat_gpt_completion(chat_history, max_tokens=300)
+    completion = chat_gpt_completion(chat_history, max_tokens=max_tokens)
     try:
         if isinstance(completion, str):
             completion = json.loads(completion)
