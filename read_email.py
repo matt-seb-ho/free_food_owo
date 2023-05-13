@@ -10,14 +10,15 @@ from bs4 import BeautifulSoup
 # Define the SCOPES. If modifying it, delete the token.pickle file.
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
   
-email_bodies = []
-
+# email_bodies = []
 
 def getEmails():
     # Variable creds will store the user access token.
     # If no valid token found, we will create one.
     creds = None
-  
+
+    email_bodies = []
+
     # The file token.pickle contains the user access token.
     # Check if it exists
     if os.path.exists('token.pickle'):
@@ -80,13 +81,16 @@ def getEmails():
             soup = BeautifulSoup(decoded_data , "lxml")
             body = soup.body()
 
+            email_bodies.append(body)
+
+
             # Printing the subject, sender's email and message
-            print("Subject: ", subject)
-            print("From: ", sender)
-            print("Message: ", body)
-            print('\n')
+            # print("Subject: ", subject)
+            # print("From: ", sender)
+            # print("Message: ", body)
+            # print('\n')
         except:
             pass
+    return email_bodies
   
-  
-getEmails()
+# getEmails()
