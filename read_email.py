@@ -25,7 +25,6 @@ def get_emails(num_emails=10):
     # If no valid token found, we will create one.
     creds = None
 
-    email_bodies = []
 
     # The file token.pickle contains the user access token.
     # Check if it exists
@@ -60,8 +59,4 @@ def get_emails(num_emails=10):
     # messages is a list of dictionaries where each dictionary contains a message id.
   
     # iterate through all the messages
-    for msg in messages:
-        txt = get_email_body(service, msg['id'])
-        email_bodies.append(txt)
-        
-    return email_bodies
+    return {msg['id']: get_email_body(service, msg['id']) for msg in messages}

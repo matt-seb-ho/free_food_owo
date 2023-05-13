@@ -16,22 +16,16 @@ def convert_json(event):
     event_name = event["name"]
     location = event["location"]
     start = event["start"]
-
-    if "end" in event:
-        end = event["end"]
-    else:
-        end = (datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%S.000') + datetime.timedelta(hours = 1)).isoformat()
-        
-
     cal_event = {
         'summary' : f'Free Food at {event_name}',
         'location' : '',
+        'description': f'There will be free food at {location}.',
         'start' : {
             'dateTime': start,
             'timeZone': 'America/Los_Angeles',
         },
         'end' : {
-            'dateTime': end,
+            'dateTime': event['end'],
             'timeZone': 'America/Los_Angeles',
         }
     }
@@ -86,44 +80,47 @@ def create_event(new_event, max_events = 10, days_ago=10):
     except HttpError as error:
         print('An error occurred: %s' % error)
 
-
-events = [{
-    'summary': f'[Free Food] pizza at lmao!!',
-    'location': '',
-    'description': f'There will be free food at ',
-    'start': { 
-        'dateTime': "2023-05-12T13:00:00.000Z", # YYYY-MM-DDThh:mm:ss+00:00
-        'timeZone': 'America/Los_Angeles',
+events = [
+    {
+        'summary': f'[Free Food] pizza at lmao!!',
+        'location': '',
+        'description': f'There will be free food at ',
+        'start': { 
+            'dateTime': "2023-05-12T13:00:00.000Z", # YYYY-MM-DDThh:mm:ss+00:00
+            'timeZone': 'America/Los_Angeles',
+        },
+        'end': {
+            'dateTime': "2023-05-12T15:00:00.000Z",
+            'timeZone': 'America/Los_Angeles',
+        },
     },
-    'end': {
-        'dateTime': "2023-05-12T15:00:00.000Z",
-        'timeZone': 'America/Los_Angeles',
+    {
+        'summary': f'[Free Food] donuts at 190a class',
+        'location': '',
+        'description': f'There will be free food at somwhere',
+        'start': { 
+            'dateTime': "2023-05-15T12:00:00", # YYYY-MM-DDThh:mm:ss+00:00
+            'timeZone': 'America/Los_Angeles',
+        },
+        'end': {
+            'dateTime': "2023-05-15T14:00:00",
+            'timeZone': 'America/Los_Angeles',
+        },
     },
-    },{
-    'summary': f'[Free Food] donuts at 190a class',
-    'location': '',
-    'description': f'There will be free food at somwhere',
-    'start': { 
-        'dateTime': "2023-05-15T12:00:00", # YYYY-MM-DDThh:mm:ss+00:00
-        'timeZone': 'America/Los_Angeles',
-    },
-    'end': {
-        'dateTime': "2023-05-15T14:00:00",
-        'timeZone': 'America/Los_Angeles',
-    },
-    },{
-    'summary': f'[Free Food] free foods at midnight event thing',
-    'location': '',
-    'description': f'There will be free food at dunno',
-    'start': { 
-        'dateTime': "2023-05-20T20:00:00", # YYYY-MM-DDThh:mm:ss+00:00
-        'timeZone': 'America/Los_Angeles',
-    },
-    'end': {
-        'dateTime': "2023-05-21T04:00:00",
-        'timeZone': 'America/Los_Angeles',
-    },
-    }, ]
+    {
+        'summary': f'[Free Food] free foods at midnight event thing',
+        'location': '',
+        'description': f'There will be free food at dunno',
+        'start': { 
+            'dateTime': "2023-05-20T20:00:00", # YYYY-MM-DDThh:mm:ss+00:00
+            'timeZone': 'America/Los_Angeles',
+        },
+        'end': {
+            'dateTime': "2023-05-21T04:00:00",
+            'timeZone': 'America/Los_Angeles',
+        },
+    }
+]
 
 
 if __name__ == '__main__':
