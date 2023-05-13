@@ -1,4 +1,6 @@
 credentials.json
 token.json
 web_creds.json
+config.py
 ff_venv/
+__pycache__/
