@@ -16,13 +16,18 @@ def convert_json(event):
     event_name = event["name"]["value"]
     location = event["location"]["value"]
     start = event["start"]["value"]
-    end = event["end"]["value"]
+
+    if "end" in event:
+        end = event["end"]["value"] 
+    else:
+        end = (datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%S.000') + datetime.timedelta(hours = 1)).isoformat()
+        
 
     cal_event = {
         'summary' : f'Free Food at {event_name}',
         'location' : '',
         'start' : {
-            'dateTime': start, # YYYY-MM-DDThh:mm:ss+00:00
+            'dateTime': start,
             'timeZone': 'America/Los_Angeles',
         },
         'end' : {
@@ -59,7 +64,6 @@ def create_event(new_event, max_events = 10, days_ago=10):
         service = build('calendar', 'v3', credentials=creds)
 
         # Call the Calendar API
-        now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
         min_day = (datetime.datetime.now() - datetime.timedelta(days = days_ago)).isoformat() + 'Z'
         print(min_day)
         print('Getting the upcoming 10 events')
@@ -134,7 +138,6 @@ if __name__ == '__main__':
             "source": "Friday, May 12th from 1-4pm",
             "confidence": 0.8
         },
-
         "end": {
             "value": "2023-05-12T15:00:00.000",
             "source": "Friday, May 12th from 1-4pm",
@@ -147,4 +150,4 @@ if __name__ == '__main__':
         }
     }
     e = convert_json(event_json)
-    create_events(e)
+    create_event(e)
