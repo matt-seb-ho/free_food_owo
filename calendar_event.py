@@ -33,7 +33,7 @@ def convert_json(event):
     
     return cal_event
 
-def create_events(new_event, max_events = 10, days_ago=10):
+def create_event(new_event, max_events = 10, days_ago=10):
     """Shows basic usage of the Google Calendar API.
     Prints the start and name of the next 10 events on the user's calendar.
     """
