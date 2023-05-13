@@ -4,13 +4,21 @@ from google.auth.transport.requests import Request
 import pickle
 import os.path
 import base64
-import email
-from bs4 import BeautifulSoup
   
 # Define the SCOPES. If modifying it, delete the token.pickle file.
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
   
 # email_bodies = []
+def get_email_body(service, message_id):
+    message = service.users().messages().get(userId='me', id=message_id).execute()
+    payload = message['payload']
+    if 'parts' in payload:
+        for part in payload['parts']:
+            if part['mimeType'] == 'text/plain':
+                data = part['body']['data']
+                body_text = base64.urlsafe_b64decode(data).decode('utf-8')
+                return body_text
+    return None
 
 def get_emails(num_emails=10):
     # Variable creds will store the user access token.
@@ -53,42 +61,7 @@ def get_emails(num_emails=10):
   
     # iterate through all the messages
     for msg in messages:
-        # Get the message from its id
-        txt = service.users().messages().get(userId='me', id=msg['id']).execute()
-  
-        # Use try-except to avoid any Errors
-        try:
-            # Get value of 'payload' from dictionary 'txt'
-            payload = txt['payload']
-            headers = payload['headers']
-
-            # Look for Subject and Sender Email in the headers
-            for d in headers:
-                if d['name'] == 'Subject':
-                    subject = d['value']
-                if d['name'] == 'From':
-                    sender = d['value']
-
-            # The Body of the message is in Encrypted format. So, we have to decode it.
-            # Get the data and decode it with base 64 decoder.
-            parts = payload.get('parts')[0]
-            data = parts['body']['data']
-            data = data.replace("-","+").replace("_","/")
-            decoded_data = base64.b64decode(data)
-
-            # Now, the data obtained is in lxml. So, we will parse 
-            # it with BeautifulSoup library
-            soup = BeautifulSoup(decoded_data , "lxml")
-            body = soup.body()
-
-            email_bodies.append(body)
-
-
-            # Printing the subject, sender's email and message
-            # print("Subject: ", subject)
-            # print("From: ", sender)
-            # print("Message: ", body)
-            # print('\n')
-        except:
-            pass
+        txt = get_email_body(service, msg['id'])
+        email_bodies.append(txt)
+        
     return email_bodies
