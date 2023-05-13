@@ -22,10 +22,10 @@ def convert_json(event):
     else:
         end = (datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%S.000') + datetime.timedelta(hours = 1)).isoformat()
         
-
     cal_event = {
         'summary' : f'Free Food at {event_name}',
         'location' : '',
+        'description': f'There will be free food at {location}',
         'start' : {
             'dateTime': start,
             'timeZone': 'America/Los_Angeles',
@@ -64,10 +64,9 @@ def create_event(new_event, max_events = 10, days_ago=10):
         service = build('calendar', 'v3', credentials=creds)
 
         # Call the Calendar API
-        min_day = (datetime.datetime.now() - datetime.timedelta(days = days_ago)).isoformat() + 'Z'
-        print(min_day)
-        print('Getting the upcoming 10 events')
-        events_result = service.events().list(calendarId='primary', timeMin=min_day,
+        today = datetime.datetime.utcnow().isoformat() + 'Z'
+        print('Getting the upcoming few events')
+        events_result = service.events().list(calendarId='primary', timeMin=today,
                                               maxResults=max_events, singleEvents=True,
                                               orderBy='startTime').execute()
         event_list = events_result.get('items', [])
@@ -130,7 +129,7 @@ if __name__ == '__main__':
     event_json = {
         "name": "HRL Laboratories Professionalism Workshop",
         "start": "2023-05-11T18:00:00.000",
-        "end": "2023-05-11T19:00:00",
+        "end": "2023-05-11T19:00:000",
         "location": "ESB 1001"
     }
     e = convert_json(event_json)
