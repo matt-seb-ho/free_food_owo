@@ -85,22 +85,24 @@ def main():
         # Call the Calendar API
         now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
         print('Getting the upcoming 10 events')
-        # events_result = service.events().list(calendarId='primary', timeMin=now,
-        #                                       maxResults=10, singleEvents=True,
-        #                                       orderBy='startTime').execute()
-        # events = events_result.get('items', [])
-
+        events_result = service.events().list(calendarId='primary', timeMin=now,
+                                              maxResults=10, singleEvents=True,
+                                              orderBy='startTime').execute()
+        event_list = events_result.get('items', [])
+        event_names = [event_list[i]['summary'] for i in range(len(event_list))]
         # create events from events
-
+        
         for e in events:
-            event = service.events().insert(calendarId='primary', body=e).execute()
-            print('Event created: %s' % (event.get('htmlLink')))
+            if e['summary'] not in event_names:
+                event = service.events().insert(calendarId='primary', body=e).execute()
+                print('Event created: %s' % (event.get('htmlLink')))
+
         if not events:
             print('No upcoming events found.')
             return
 
         # Prints the start and name of the next 10 events
-        for event in events:
+        for event in event_list:
             start = event['start'].get('dateTime', event['start'].get('date'))
             print(start, event['summary'])
 
