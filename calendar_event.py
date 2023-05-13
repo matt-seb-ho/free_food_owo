@@ -11,53 +11,7 @@ from googleapiclient.errors import HttpError
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/calendar']
-
-food ="pizza"
-event = "lmao"
-location = ""
-start_time = "2023-05-28T07:00:00"
-end_time = "2023-05-28T09:00:00"
-time_zone = ""
-
-events = [{
-  'summary': f'[Free Food] {food} at {event}',
-  'location': '',
-  'description': f'There will be free food at {location}',
-  'start': { 
-    'dateTime': start_time, # YYYY-MM-DDThh:mm:ss+00:00
-    'timeZone': 'America/Los_Angeles',
-  },
-  'end': {
-    'dateTime': end_time,
-    'timeZone': 'America/Los_Angeles',
-  },
-},{
-  'summary': f'[Free Food] donuts at 190a class',
-  'location': '',
-  'description': f'There will be free food at {location}',
-  'start': { 
-    'dateTime': "2023-05-15T12:00:00", # YYYY-MM-DDThh:mm:ss+00:00
-    'timeZone': 'America/Los_Angeles',
-  },
-  'end': {
-    'dateTime': "2023-05-15T14:00:00",
-    'timeZone': 'America/Los_Angeles',
-  },
-},{
-  'summary': f'[Free Food] free foods at midnight event thing',
-  'location': '',
-  'description': f'There will be free food at dunno',
-  'start': { 
-    'dateTime': "2023-05-20T20:00:00", # YYYY-MM-DDThh:mm:ss+00:00
-    'timeZone': 'America/Los_Angeles',
-  },
-  'end': {
-    'dateTime': "2023-05-21T04:00:00",
-    'timeZone': 'America/Los_Angeles',
-  },
-}, ]
-
-def main():
+def create_events(events):
     """Shows basic usage of the Google Calendar API.
     Prints the start and name of the next 10 events on the user's calendar.
     """
@@ -91,7 +45,7 @@ def main():
         event_list = events_result.get('items', [])
         event_names = [event_list[i]['summary'] for i in range(len(event_list))]
         # create events from events
-        
+
         for e in events:
             if e['summary'] not in event_names:
                 event = service.events().insert(calendarId='primary', body=e).execute()
@@ -110,5 +64,44 @@ def main():
         print('An error occurred: %s' % error)
 
 
+events = [{
+    'summary': f'[Free Food] pizza at lmao!',
+    'location': '',
+    'description': f'There will be free food at ',
+    'start': { 
+        'dateTime': "2023-05-28T07:00:00", # YYYY-MM-DDThh:mm:ss+00:00
+        'timeZone': 'America/Los_Angeles',
+    },
+    'end': {
+        'dateTime': "2023-05-28T09:00:00",
+        'timeZone': 'America/Los_Angeles',
+    },
+    },{
+    'summary': f'[Free Food] donuts at 190a class',
+    'location': '',
+    'description': f'There will be free food at somwhere',
+    'start': { 
+        'dateTime': "2023-05-15T12:00:00", # YYYY-MM-DDThh:mm:ss+00:00
+        'timeZone': 'America/Los_Angeles',
+    },
+    'end': {
+        'dateTime': "2023-05-15T14:00:00",
+        'timeZone': 'America/Los_Angeles',
+    },
+    },{
+    'summary': f'[Free Food] free foods at midnight event thing',
+    'location': '',
+    'description': f'There will be free food at dunno',
+    'start': { 
+        'dateTime': "2023-05-20T20:00:00", # YYYY-MM-DDThh:mm:ss+00:00
+        'timeZone': 'America/Los_Angeles',
+    },
+    'end': {
+        'dateTime': "2023-05-21T04:00:00",
+        'timeZone': 'America/Los_Angeles',
+    },
+    }, ]
+
+
 if __name__ == '__main__':
-    main()
+    create_events(events)
