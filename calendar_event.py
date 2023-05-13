@@ -13,12 +13,12 @@ from googleapiclient.errors import HttpError
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 
 def convert_json(event):
-    event_name = event["name"]["value"]
-    location = event["location"]["value"]
-    start = event["start"]["value"]
+    event_name = event["name"]
+    location = event["location"]
+    start = event["start"]
 
     if "end" in event:
-        end = event["end"]["value"] 
+        end = event["end"]
     else:
         end = (datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%S.000') + datetime.timedelta(hours = 1)).isoformat()
         
@@ -128,26 +128,10 @@ events = [{
 
 if __name__ == '__main__':
     event_json = {
-        "name": {
-            "value": "Culture Showcase",
-            "source": "Culture Showcase",
-            "confidence": 0.9
-        },
-        "start": {
-            "value": "2023-05-12T13:00:00.000",
-            "source": "Friday, May 12th from 1-4pm",
-            "confidence": 0.8
-        },
-        "end": {
-            "value": "2023-05-12T15:00:00.000",
-            "source": "Friday, May 12th from 1-4pm",
-            "confidence": 0.8
-        },
-        "location": {
-            "value": "Storke Plaza",
-            "source": "Storke Plaza",
-            "confidence": 0.9
-        }
+        "name": "HRL Laboratories Professionalism Workshop",
+        "start": "2023-05-11T18:00:00.000",
+        "end": "2023-05-11T19:00:00",
+        "location": "ESB 1001"
     }
     e = convert_json(event_json)
     create_event(e)
