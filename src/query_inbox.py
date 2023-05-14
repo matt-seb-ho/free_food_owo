@@ -21,7 +21,44 @@ def get_email_body(service, message_id):
                 return body_text
     return None
 
-def get_emails(num_emails=10):
+def get_email_dict(service, message_id):
+    message = service.users().messages().get(userId='me', id=message_id).execute()
+    payload = message['payload']
+    subject = ""
+    if 'headers' in payload:
+        subject = [header['value'] for header in payload['headers'] if header['name'] == 'Subject'][0]
+
+    best_part = None
+    best_priority = None
+
+    for part in message['payload']['parts']:
+        if part['mimeType'] == 'multipart/alternative':
+            for subpart in part['parts']:
+                if subpart['mimeType'] == 'text/plain':
+                    priority = subpart['headers'][0]['value']
+                    if best_priority is None or priority < best_priority:
+                        best_part = subpart
+                        best_priority = priority
+                    break
+        elif part['mimeType'] == 'text/plain':
+            priority = part['headers'][0]['value']
+            if best_priority is None or priority < best_priority:
+                best_part = part
+                best_priority = priority
+
+    # Decode the body from base64 and convert to plain text
+    if best_part is not None:
+        body = base64.urlsafe_b64decode(best_part['body']['data']).decode('utf-8')
+    else:
+        body = ""
+
+    return {
+        "subject": subject,
+        "body": body 
+    }
+
+
+def get_emails(num_emails=10, query=None):
     # Variable creds will store the user access token.
     # If no valid token found, we will create one.
     creds = None
@@ -50,10 +87,14 @@ def get_emails(num_emails=10):
     # Connect to the Gmail API
     service = build('gmail', 'v1', credentials=creds)
   
-    # We can also pass maxResults to get any number of emails. Like this:
-    result = service.users().messages().list(maxResults=num_emails, userId='me').execute()
+    # Query messages from inbox
+    if query is not None:
+        result = service.users().messages().list(maxResults=num_emails, userId='me', q=query).execute()
+    else:
+        result = service.users().messages().list(maxResults=num_emails, userId='me').execute()
     # messages is a list of dictionaries where each dictionary contains a message id.
     messages = result.get('messages')
   
     # iterate through all the messages
-    return {msg['id']: get_email_body(service, msg['id']) for msg in messages}
+    # return {msg['id']: get_email_body(service, msg['id']) for msg in messages}
+    return {msg['id']: get_email_dict(service, msg['id']) for msg in messages}
