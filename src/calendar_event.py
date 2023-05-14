@@ -23,12 +23,16 @@ def format_event_data(fields):
         end = datetime.fromisoformat(fields["end"]["value"].rstrip("Z"))
         end = end.replace(year=start.year)
         end_date = end.isoformat().rstrip("Z")
+
+    food_type = "food"
+    if fields["food_type"]["value"] is not None:
+        food_type = fields["food_type"]["value"]
     
     # reformat calendar event data
     return {
         'summary' : f'Free Food at {fields["name"]["value"]}',
         'location' : '',
-        'description': f'There will be free food at {fields["location"]["value"]}.',
+        'description': f'There will be free {food_type} at {fields["location"]["value"]}.',
         'start' : {
             'dateTime': start_date,
             'timeZone': 'America/Los_Angeles',

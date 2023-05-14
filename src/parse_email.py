@@ -17,7 +17,8 @@ NAME_FIELD = ParseField("name", "The name of the event", "string")
 START_FIELD = ParseField("start", "The start date and time of the event", "Date")
 END_FIELD = ParseField("end", "The end date and time of the event", "Date")
 LOCATION_FIELD = ParseField("location", "The location of the event", "string")
-DEFAULT_FIELD_LIST = [IS_FF_EVENT_FIELD, NAME_FIELD, START_FIELD, END_FIELD, LOCATION_FIELD]
+FOOD_TYPE_FIELD = ParseField("food_type", "The type of food at the event, leave null if not specified", "string")
+DEFAULT_FIELD_LIST = [IS_FF_EVENT_FIELD, NAME_FIELD, START_FIELD, END_FIELD, LOCATION_FIELD, FOOD_TYPE_FIELD]
 
 def remove_links(text):
     """
