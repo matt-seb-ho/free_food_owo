@@ -13,14 +13,17 @@ def jspp(dict):
 def reformat_fields_for_calendar_event(fields):
     rfmtd = {k: v["value"] for k, v in fields.items()}
 
-    rfmtd["start"] = rfmtd["start"].rstrip("Z")
+    start = datetime.fromisoformat(rfmtd["start"].rstrip("Z"))
+    start = start.replace(year=datetime.now().year)
+    rfmtd["start"] = start.isoformat().rstrip("Z")
     
     if rfmtd["end"] is None:
-        start = datetime.fromisoformat(rfmtd["start"])
         end = start + timedelta(hours=1)
         rfmtd["end"] = end.isoformat().rstrip('Z')
     else:
-        rfmtd["end"] = rfmtd["end"].rstrip("Z")
+        end = datetime.fromisoformat(rfmtd["end"].rstrip("Z"))
+        end = end.replace(year=datetime.now().year)
+        rfmtd["end"] = end.isoformat().rstrip("Z")
     
     return rfmtd
 
@@ -75,8 +78,5 @@ if __name__ == "__main__":
         if is_food_event(email):
             fields = extract_fields(email, max_tokens=args.extract_max_tokens)
             reformatted = reformat_fields_for_calendar_event(fields)
-            print("no converted")
-            jspp(reformatted)
-            print("converted")
-            jspp(convert_json(reformatted))
+            # jspp(convert_json(reformatted))
             create_event(convert_json(reformatted))

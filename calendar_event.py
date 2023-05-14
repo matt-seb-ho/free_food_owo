@@ -1,6 +1,3 @@
-from __future__ import print_function
-
-import datetime
 import os.path
 
 from google.auth.transport.requests import Request
@@ -32,9 +29,10 @@ def convert_json(event):
     
     return cal_event
 
-def create_event(new_event, max_events = 10, days_ago=10):
-    """Shows basic usage of the Google Calendar API.
-    Prints the start and name of the next 10 events on the user's calendar.
+def create_event(new_event):
+    """
+    add event to calendar
+
     """
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
@@ -58,70 +56,17 @@ def create_event(new_event, max_events = 10, days_ago=10):
         service = build('calendar', 'v3', credentials=creds)
 
         # Call the Calendar API
-        today = datetime.datetime.utcnow().isoformat() + 'Z'
-        print('Getting the upcoming few events')
-        events_result = service.events().list(calendarId='primary', timeMin=today,
-                                              maxResults=max_events, singleEvents=True,
-                                              orderBy='startTime').execute()
-        event_list = events_result.get('items', [])
-        event_name = [event_list[i]['summary'] for i in range(len(event_list))]
-        # create events from events
-
-        if new_event['summary'] not in event_name:
-            event = service.events().insert(calendarId='primary', body=new_event).execute()
-            print('Event created: %s' % (event.get('htmlLink')))
-
-        # Prints the start and name of the next 10 events
-        for event in event_list:
-            start = event['start'].get('dateTime', event['start'].get('date'))
-            print(start, event['summary'])
+        event = service.events().insert(calendarId='primary', body=new_event).execute()
+        print('Event created: %s' % (event.get('htmlLink')))
+        return True
 
     except HttpError as error:
         print('An error occurred: %s' % error)
-
-events = [
-    {
-        'summary': f'[Free Food] pizza at lmao!!',
-        'location': '',
-        'description': f'There will be free food at ',
-        'start': { 
-            'dateTime': "2023-05-12T13:00:00.000Z", # YYYY-MM-DDThh:mm:ss+00:00
-            'timeZone': 'America/Los_Angeles',
-        },
-        'end': {
-            'dateTime': "2023-05-12T15:00:00.000Z",
-            'timeZone': 'America/Los_Angeles',
-        },
-    },
-    {
-        'summary': f'[Free Food] donuts at 190a class',
-        'location': '',
-        'description': f'There will be free food at somwhere',
-        'start': { 
-            'dateTime': "2023-05-15T12:00:00", # YYYY-MM-DDThh:mm:ss+00:00
-            'timeZone': 'America/Los_Angeles',
-        },
-        'end': {
-            'dateTime': "2023-05-15T14:00:00",
-            'timeZone': 'America/Los_Angeles',
-        },
-    },
-    {
-        'summary': f'[Free Food] free foods at midnight event thing',
-        'location': '',
-        'description': f'There will be free food at dunno',
-        'start': { 
-            'dateTime': "2023-05-20T20:00:00", # YYYY-MM-DDThh:mm:ss+00:00
-            'timeZone': 'America/Los_Angeles',
-        },
-        'end': {
-            'dateTime': "2023-05-21T04:00:00",
-            'timeZone': 'America/Los_Angeles',
-        },
-    }
-]
+        return False
 
 
+"""
+# TESTING 
 if __name__ == '__main__':
     event_json = {
         "name": "HRL Laboratories Professionalism Workshop",
@@ -131,3 +76,5 @@ if __name__ == '__main__':
     }
     e = convert_json(event_json)
     create_event(e)
+
+"""

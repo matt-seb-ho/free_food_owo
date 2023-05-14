@@ -1,5 +1,6 @@
-credentials.json
+token.pickle
 token.json
+credentials.json
 web_creds.json
 config.py
 ff_venv/
