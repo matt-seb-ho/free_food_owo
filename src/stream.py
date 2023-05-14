@@ -114,7 +114,7 @@ def build_analysis_box(subj_line, email_txt, fields):
 def build_query_string():
     # query_string = "is:unread"
     query_string = ""
-    for _, filter in edited_extra_filters.iterrows():
+    for _, filter in edited_value_filters.iterrows():
         if filter["use filter"]:
             query_string += f" {filter['filter']}:{filter['value (edit me)']}"
     if starred_flag:
