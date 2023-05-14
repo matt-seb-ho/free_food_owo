@@ -14,6 +14,8 @@ dummy_ext = {
   "location": "ESB 1001"
 }
 
+PREPROCESSED_EMAILS = "../data/preprocessed_emails.json"
+
 if __name__ == "__main__":
     psr = argparse.ArgumentParser()
     psr.add_argument("--num_emails", "-ne", type=int, default=10)
@@ -35,7 +37,7 @@ if __name__ == "__main__":
     preprocessed = get_emails(args.num_emails)
 
     if args.do_not_deduplicate:
-        with open("processed_email_cache.json") as f:
+        with open(PREPROCESSED_EMAILS) as f:
             processed_email_ids = set(json.load(f)["ids"])
     else:
         processed_email_ids = set()
@@ -47,7 +49,7 @@ if __name__ == "__main__":
             emails.append(truncate_email(email, args.max_email_length))
 
     if not args.do_not_deduplicate:
-        with open("processed_email_cache.json", "w") as f:
+        with open(PREPROCESSED_EMAILS, 'w') as f:
             json.dump({"ids": list(processed_email_ids)}, f)
 
     for i, email in enumerate(emails[args.ignore_first:]):
