@@ -1,4 +1,5 @@
 IS_FF_EVENT_TEMPLATE = "Email: {email}\n\nDoes this email describe an event with free food? Answer with \"True\" or \"False\" only"
+
 PARSE_SYS_TEMPLATE = """You are a JSON utility built to extract structured information from documents. You can only return JSON. JSON must match the typescript type FieldsResultObject.
 type FieldResult = {{
   value: string | number | boolean | Date | null;
@@ -17,6 +18,7 @@ Here are the fields you are extracting. Only extract these fields. Do not extrac
 ----
 {string_fields}
 """
+
 PARSE_USER_TEMPLATE = """Extract the fields from this document. Return the most relevant text to the classification in the source field. Source should be exact words from the following document and less than 100 characters. Keep source short.
 ----
 {document}

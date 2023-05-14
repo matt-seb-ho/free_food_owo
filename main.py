@@ -1,34 +1,11 @@
 import argparse
 import json
-from read_email import get_emails
-from parse_email import is_food_event, extract_fields
-from calendar_event import create_event, convert_json
-from datetime import datetime, timedelta
-
-ACTUALLY_DO_IT = False
+from query_inbox import get_emails
+from parse_email import extract_fields, truncate_email
+from calendar_event import create_event, format_event_data
 
 def jspp(dict):
     print(json.dumps(dict, indent=2))
-
-def reformat_fields_for_calendar_event(fields):
-    rfmtd = {k: v["value"] for k, v in fields.items()}
-
-    start = datetime.fromisoformat(rfmtd["start"].rstrip("Z"))
-    start = start.replace(year=datetime.now().year)
-    rfmtd["start"] = start.isoformat().rstrip("Z")
-    
-    if rfmtd["end"] is None:
-        end = start + timedelta(hours=1)
-        rfmtd["end"] = end.isoformat().rstrip('Z')
-    else:
-        end = datetime.fromisoformat(rfmtd["end"].rstrip("Z"))
-        end = end.replace(year=datetime.now().year)
-        rfmtd["end"] = end.isoformat().rstrip("Z")
-    
-    return rfmtd
-
-def truncate_email(email, max_words):
-    return ' '.join(email.split()[:max_words])
 
 dummy_ext = {
   "name": "HRL Laboratories Professionalism Workshop",
@@ -43,7 +20,7 @@ if __name__ == "__main__":
     psr.add_argument("--max_email_length", "-mel", type=int, default=500, help="in words")
     psr.add_argument("--extract_max_tokens", "-emt", type=int, default=300)
     psr.add_argument("--ignore_first", "-if", type=int, default=0)
-    psr.add_argument("--dont_dedup", "-ddd", action='store_false')
+    psr.add_argument("--do_not_deduplicate", "-dnd", action='store_false')
     args = psr.parse_args()
 
     """
@@ -55,28 +32,27 @@ if __name__ == "__main__":
 
     """
 
-    emails = get_emails(args.num_emails)
+    preprocessed = get_emails(args.num_emails)
 
-    if args.dont_dedup:
+    if args.do_not_deduplicate:
         with open("processed_email_cache.json") as f:
             processed_email_ids = set(json.load(f)["ids"])
     else:
         processed_email_ids = set()
 
-    email_txt = []
-    for id, email in emails.items():
+    emails = []
+    for id, email in preprocessed.items():
         if id not in processed_email_ids:
             processed_email_ids.add(id)
-            email_txt.append(truncate_email(email, args.max_email_length))
+            emails.append(truncate_email(email, args.max_email_length))
 
-    if not args.dont_dedup:
+    if not args.do_not_deduplicate:
         with open("processed_email_cache.json", "w") as f:
             json.dump({"ids": list(processed_email_ids)}, f)
 
-    for i, email in enumerate(email_txt[args.ignore_first:]):
+    for i, email in enumerate(emails[args.ignore_first:]):
         print(email)
-        if is_food_event(email):
-            fields = extract_fields(email, max_tokens=args.extract_max_tokens)
-            reformatted = reformat_fields_for_calendar_event(fields)
-            # jspp(convert_json(reformatted))
-            create_event(convert_json(reformatted))
+        fields = extract_fields(email, max_tokens=args.extract_max_tokens)
+        if fields["is_free_food_event"]["value"]:
+            event_data = format_event_data(fields)
+            create_event(event_data)

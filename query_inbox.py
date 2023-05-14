@@ -1,9 +1,10 @@
+import base64
+import os.path
+import pickle
+
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
-import pickle
-import os.path
-import base64
   
 # Define the SCOPES. If modifying it, delete the token.pickle file.
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
@@ -25,11 +26,9 @@ def get_emails(num_emails=10):
     # If no valid token found, we will create one.
     creds = None
 
-
     # The file token.pickle contains the user access token.
     # Check if it exists
     if os.path.exists('token.pickle'):
-  
         # Read the token from the file and store it in the variable creds
         with open('token.pickle', 'rb') as token:
             creds = pickle.load(token)
@@ -51,14 +50,10 @@ def get_emails(num_emails=10):
     # Connect to the Gmail API
     service = build('gmail', 'v1', credentials=creds)
   
-    # request a list of all the messages
-    # result = service.users().messages().list(userId='me').execute()
-  
     # We can also pass maxResults to get any number of emails. Like this:
     result = service.users().messages().list(maxResults=num_emails, userId='me').execute()
-    messages = result.get('messages')
-  
     # messages is a list of dictionaries where each dictionary contains a message id.
+    messages = result.get('messages')
   
     # iterate through all the messages
     return {msg['id']: get_email_body(service, msg['id']) for msg in messages}

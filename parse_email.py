@@ -1,63 +1,31 @@
-import openai
 import json
-import re
-from constants import *
-from parse_fields import ParseField, format_field_list
-from copy import deepcopy
+
+from config import OPENAI_API_KEY
+from constants import PARSE_SYS_TEMPLATE, PARSE_USER_TEMPLATE
+from openai_wrappers import OpenAIWrapper
+from parse_utils import (
+    ParseField,
+    format_field_list,
+    remove_punctuation
+)
 from tenacity import retry
 from tenacity.stop import stop_after_attempt
 from tenacity.wait import wait_random_exponential
-from config import OPENAI_API_KEY, MSHO_OPENAI_API_KEY
 
-openai.api_key = OPENAI_API_KEY
-# openai.api_key = MSHO_OPENAI_API_KEY
+openai_wrapper = OpenAIWrapper(OPENAI_API_KEY)
 
-@retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-def text_completion(generation_args, text_only=False):
-    response = openai.Completion.create(**generation_args)
-    res_obj = json.loads(str(response))
-    if text_only:
-        text_choices = [choice["text"] for choice in res_obj["choices"]]
-        return text_choices[0] if len(text_choices) == 1 else text_choices
-    return res_obj
-
-@retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-def chat_completion(generation_args):
-    response = openai.ChatCompletion.create(**generation_args)
-    return json.loads(str(response))
-
-def get_text_from_completion(cmp):
-    text_choices = [choice["message"]["content"] for choice in cmp["choices"]]
-    return text_choices[0] if len(text_choices) == 1 else text_choices
-
-def chat_gpt_completion(chat_history, max_tokens):
-    completion_args = deepcopy(CHATGPT_ARGS)
-    completion_args["messages"] = chat_history
-    completion_args["max_tokens"] = max_tokens
-    # return chat_completion(completion_args, text_only=True)
-    completion = chat_completion(completion_args)
-    return get_text_from_completion(completion)
-
-SAVE_TO_FILE = False
-def remove_punctuation(s):
-    return re.sub(r'[^\w\s]', '', s)
-
-def is_food_event(email_txt):
-    prompt = IS_FF_EVENT_TEMPLATE.format(email=email_txt)
-    chat_history = [{"role": "user", "content": prompt}]
-    completion = chat_gpt_completion(chat_history, max_tokens=3)
-    if SAVE_TO_FILE:
-        with open("save_res.json", 'w') as f:
-            json.dump(completion, f, indent=2)
-    return remove_punctuation(completion).lower() == "true"
-
+IS_FF_EVENT_FIELD = ParseField("is_free_food_event", "Whether the email describes an event with free food", "boolean")
 NAME_FIELD = ParseField("name", "The name of the event", "string")
 START_FIELD = ParseField("start", "The start date and time of the event", "Date")
 END_FIELD = ParseField("end", "The end date and time of the event", "Date")
 LOCATION_FIELD = ParseField("location", "The location of the event", "string")
 DEFAULT_FIELD_LIST = [NAME_FIELD, START_FIELD, END_FIELD, LOCATION_FIELD]
 
+def truncate_email(email, max_words):
+    return ' '.join(email.split()[:max_words])
+
 def extract_fields(txt, fields=DEFAULT_FIELD_LIST, max_tokens=300):
+    # prepare prompt
     string_fields = format_field_list(fields)
     chat_history = [
         { 
@@ -69,7 +37,11 @@ def extract_fields(txt, fields=DEFAULT_FIELD_LIST, max_tokens=300):
             "content": PARSE_USER_TEMPLATE.format(document=txt)
         }
     ]
-    completion = chat_gpt_completion(chat_history, max_tokens=max_tokens)
+    
+    # extract info
+    completion = openai_wrapper.chat_gpt_completion(chat_history, max_tokens=max_tokens)
+
+    # try to parse the expected JSON format
     try:
         if isinstance(completion, str):
             completion = json.loads(completion)
@@ -78,5 +50,9 @@ def extract_fields(txt, fields=DEFAULT_FIELD_LIST, max_tokens=300):
     except json.JSONDecodeError as e:
         print(completion)
         raise e
+
+    # handle non-str 
+    # is_ff_event = remove_punctuation(completion["is_free_food_event"]).lower() == "true"
+    # completion["is_free_food_event"] = is_ff_event
 
     return completion
