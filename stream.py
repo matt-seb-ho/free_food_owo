@@ -1,7 +1,7 @@
 import streamlit as st
 import json
 from query_inbox import get_emails
-from parse_email import extract_fields, truncate_email
+from parse_email import extract_fields, truncate_email, remove_links
 from calendar_event import create_event, format_event_data
 
 def jspp(dict):
@@ -28,7 +28,9 @@ if st.button("Go!"):
     for id, email in preprocessed.items():
         if id not in processed_email_ids:
             processed_email_ids.add(id)
-            emails.append(truncate_email(email, MAX_EMAIL_LENGTH))
+            truncated = truncate_email(email, MAX_EMAIL_LENGTH)
+            cleaned = remove_links(truncated)
+            emails.append(cleaned)
 
     event_count = 0
     for i, email in enumerate(emails):

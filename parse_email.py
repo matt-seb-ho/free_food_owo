@@ -1,4 +1,5 @@
 import json
+import re
 
 from config import OPENAI_API_KEY
 from constants import PARSE_SYS_TEMPLATE, PARSE_USER_TEMPLATE
@@ -6,11 +7,8 @@ from openai_wrappers import OpenAIWrapper
 from parse_utils import (
     ParseField,
     format_field_list,
-    remove_punctuation
+    # remove_punctuation
 )
-from tenacity import retry
-from tenacity.stop import stop_after_attempt
-from tenacity.wait import wait_random_exponential
 
 openai_wrapper = OpenAIWrapper(OPENAI_API_KEY)
 
@@ -19,7 +17,16 @@ NAME_FIELD = ParseField("name", "The name of the event", "string")
 START_FIELD = ParseField("start", "The start date and time of the event", "Date")
 END_FIELD = ParseField("end", "The end date and time of the event", "Date")
 LOCATION_FIELD = ParseField("location", "The location of the event", "string")
-DEFAULT_FIELD_LIST = [NAME_FIELD, START_FIELD, END_FIELD, LOCATION_FIELD]
+DEFAULT_FIELD_LIST = [IS_FF_EVENT_FIELD, NAME_FIELD, START_FIELD, END_FIELD, LOCATION_FIELD]
+
+def remove_links(text):
+    """
+    - Define a regular expression pattern to match links
+    - Use the re.sub() function to replace all matches of the link pattern with an empty string
+
+    """
+    link_pattern = r'<https?://\S+>'
+    return re.sub(link_pattern, '', text)
 
 def truncate_email(email, max_words):
     return ' '.join(email.split()[:max_words])
